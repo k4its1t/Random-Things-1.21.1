@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "color=white": {"model":"randomthings:block/rainbowlamp/white"},
+    "color=orange": {"model":"randomthings:block/rainbowlamp/orange"},
+    "color=magenta": {"model":"randomthings:block/rainbowlamp/magenta"},
+    "color=light_blue": {"model":"randomthings:block/rainbowlamp/lightblue"},
+    "color=yellow": {"model":"randomthings:block/rainbowlamp/yellow"},
+    "color=lime": {"model":"randomthings:block/rainbowlamp/lime"},
+    "color=pink": {"model":"randomthings:block/rainbowlamp/pink"},
+    "color=gray": {"model":"randomthings:block/rainbowlamp/gray"},
+    "color=light_gray": {"model":"randomthings:block/rainbowlamp/silver"},
+    "color=cyan": {"model":"randomthings:block/rainbowlamp/cyan"},
+    "color=purple": {"model":"randomthings:block/rainbowlamp/purple"},
+    "color=blue": {"model":"randomthings:block/rainbowlamp/blue"},
+    "color=brown": {"model":"randomthings:block/rainbowlamp/brown"},
+    "color=green": {"model":"randomthings:block/rainbowlamp/green"},
+    "color=red": {"model":"randomthings:block/rainbowlamp/red"},
+    "color=black": {"model":"randomthings:block/rainbowlamp/black"}
+  }
+}

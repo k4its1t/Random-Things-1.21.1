@@ -1,0 +1,16 @@
+{
+  "itemGroup.randomthings":"Random Things",
+  "block.randomthings.platform":"橡木平台",
+  "block.randomthings.platform_spruce":"云杉木平台",
+  "block.randomthings.platform_birch":"白桦木平台",
+  "block.randomthings.platform_jungle":"丛林木平台",
+  "block.randomthings.platform_acacia":"金合欢木平台",
+  "block.randomthings.platform_darkoak":"深色橡木平台",
+  "block.randomthings.rainbowlamp":"彩虹灯",
+  "block.randomthings.blockofsticks":"木棍块",
+  "block.randomthings.fertilizeddirt":"沃土",
+  "block.randomthings.superlubricentstone":"超级滑滑石",
+  "block.randomthings.superlubricentplatform":"超级润滑平台",
+  "block.randomthings.superlubricentice":"超级润滑冰",
+  "item.randomthings.blazeandsteel":"灼炎打火石"
+}

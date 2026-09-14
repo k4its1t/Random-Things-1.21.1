@@ -1,0 +1,5 @@
+{
+  "parent":"block/block",
+  "elements":[{"from":[0,0,0],"to":[16,15,16],"faces":{"down":{"texture":"#dirt","cullface":"down"},"up":{"texture":"#top"},"north":{"texture":"#dirt","cullface":"north"},"south":{"texture":"#dirt","cullface":"south"},"west":{"texture":"#dirt","cullface":"west"},"east":{"texture":"#dirt","cullface":"east"}}}],
+  "textures":{"particle":"randomthings:block/fertilizeddirt","dirt":"randomthings:block/fertilizeddirt","top":"randomthings:block/fertilizeddirt"}
+}

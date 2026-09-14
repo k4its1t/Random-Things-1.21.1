@@ -1,0 +1,16 @@
+{
+  "itemGroup.randomthings":"Random Things",
+  "block.randomthings.platform":"Oak Platform",
+  "block.randomthings.platform_spruce":"Spruce Platform",
+  "block.randomthings.platform_birch":"Birch Platform",
+  "block.randomthings.platform_jungle":"Jungle Platform",
+  "block.randomthings.platform_acacia":"Acacia Platform",
+  "block.randomthings.platform_darkoak":"Dark Oak Platform",
+  "block.randomthings.rainbowlamp":"Rainbow Lamp",
+  "block.randomthings.blockofsticks":"Block of Sticks",
+  "block.randomthings.fertilizeddirt":"Fertilized Dirt",
+  "block.randomthings.superlubricentstone":"Super Lubricent Stone",
+  "block.randomthings.superlubricentplatform":"Super Lubricent Platform",
+  "block.randomthings.superlubricentice":"Super Lubricent Ice",
+  "item.randomthings.blazeandsteel":"Blaze and Steel"
+}
