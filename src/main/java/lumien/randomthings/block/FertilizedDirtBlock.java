@@ -7,7 +7,9 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.BushBlock;
+import net.minecraft.world.level.block.CactusBlock;
+import net.minecraft.world.level.block.SugarCaneBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -46,8 +48,10 @@ public class FertilizedDirtBlock extends Block {
             return TriState.DEFAULT;
         }
 
-        boolean crop = plant.is(BlockTags.CROPS);
-        return state.getValue(TILLED) == crop ? TriState.TRUE : TriState.FALSE;
+        if (plant.is(BlockTags.CROPS)) {
+            return state.getValue(TILLED) ? TriState.TRUE : TriState.FALSE;
+        }
+        return state.getValue(TILLED) ? TriState.FALSE : TriState.DEFAULT;
     }
 
     @Override
@@ -55,7 +59,10 @@ public class FertilizedDirtBlock extends Block {
         BlockPos abovePos = pos.above();
         for (int i = 0; i < 3; i++) {
             BlockState above = level.getBlockState(abovePos);
-            if (!(above.getBlock() instanceof BonemealableBlock) || !above.isRandomlyTicking()) {
+            if (!above.isRandomlyTicking()
+                    || !(above.getBlock() instanceof BushBlock
+                            || above.getBlock() instanceof CactusBlock
+                            || above.getBlock() instanceof SugarCaneBlock)) {
                 break;
             }
             above.randomTick(level, abovePos, random);

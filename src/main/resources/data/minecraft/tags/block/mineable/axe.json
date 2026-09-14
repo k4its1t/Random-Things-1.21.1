@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "randomthings:platform",
+    "randomthings:platform_spruce",
+    "randomthings:platform_birch",
+    "randomthings:platform_jungle",
+    "randomthings:platform_acacia",
+    "randomthings:platform_darkoak",
+    "randomthings:blockofsticks"
+  ]
+}

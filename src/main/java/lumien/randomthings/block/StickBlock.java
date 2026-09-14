@@ -5,6 +5,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
@@ -27,6 +29,13 @@ public class StickBlock extends Block {
     }
 
     @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+        return state.getValue(RETURNING)
+                ? ModBlocks.RETURNING_BLOCK_OF_STICKS_ITEM.get().getDefaultInstance()
+                : ModBlocks.BLOCK_OF_STICKS_ITEM.get().getDefaultInstance();
+    }
+
+    @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, net.minecraft.world.entity.LivingEntity placer, net.minecraft.world.item.ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide) {
@@ -42,7 +51,8 @@ public class StickBlock extends Block {
             Player closest = level.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 50.0D,
                     entity -> entity instanceof Player player && !player.isCreative());
             if (closest != null) {
-                closest.getInventory().placeItemBackInInventory(ModBlocks.BLOCK_OF_STICKS_ITEM.get().getDefaultInstance());
+                closest.getInventory().placeItemBackInInventory(
+                        ModBlocks.RETURNING_BLOCK_OF_STICKS_ITEM.get().getDefaultInstance());
             }
         } else {
             level.playSound(null, pos, SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 0.6F, 1.2F);

@@ -32,6 +32,7 @@ public final class RandomThings {
                         output.accept(ModBlocks.PLATFORM_DARK_OAK_ITEM.get());
                         output.accept(ModBlocks.RAINBOW_LAMP_ITEM.get());
                         output.accept(ModBlocks.BLOCK_OF_STICKS_ITEM.get());
+                        output.accept(ModBlocks.RETURNING_BLOCK_OF_STICKS_ITEM.get());
                         output.accept(ModBlocks.FERTILIZED_DIRT_ITEM.get());
                         output.accept(ModBlocks.SUPER_LUBRICENT_STONE_ITEM.get());
                         output.accept(ModBlocks.SUPER_LUBRICENT_PLATFORM_ITEM.get());

@@ -1,6 +1,7 @@
 package lumien.randomthings.block;
 
 import lumien.randomthings.RandomThings;
+import lumien.randomthings.item.ReturningBlockOfSticksItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -57,6 +58,9 @@ public final class ModBlocks {
     public static final DeferredItem<BlockItem> PLATFORM_DARK_OAK_ITEM = blockItem("platform_darkoak", PLATFORM_DARK_OAK);
     public static final DeferredItem<BlockItem> RAINBOW_LAMP_ITEM = blockItem("rainbowlamp", RAINBOW_LAMP);
     public static final DeferredItem<BlockItem> BLOCK_OF_STICKS_ITEM = blockItem("blockofsticks", BLOCK_OF_STICKS);
+    public static final DeferredItem<ReturningBlockOfSticksItem> RETURNING_BLOCK_OF_STICKS_ITEM = ITEMS.register(
+            "returningblockofsticks",
+            () -> new ReturningBlockOfSticksItem(BLOCK_OF_STICKS.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> FERTILIZED_DIRT_ITEM = blockItem("fertilizeddirt", FERTILIZED_DIRT);
     public static final DeferredItem<BlockItem> SUPER_LUBRICENT_STONE_ITEM = blockItem("superlubricentstone", SUPER_LUBRICENT_STONE);
     public static final DeferredItem<BlockItem> SUPER_LUBRICENT_PLATFORM_ITEM = blockItem("superlubricentplatform", SUPER_LUBRICENT_PLATFORM);

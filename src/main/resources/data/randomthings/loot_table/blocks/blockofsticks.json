@@ -5,8 +5,24 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "randomthings:blockofsticks"
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "randomthings:returningblockofsticks",
+              "conditions": [
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "randomthings:blockofsticks",
+                  "properties": {"returning": "true"}
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "randomthings:blockofsticks"
+            }
+          ]
         }
       ],
       "conditions": [
