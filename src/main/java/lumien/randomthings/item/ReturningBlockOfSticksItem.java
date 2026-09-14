@@ -23,6 +23,11 @@ public final class ReturningBlockOfSticksItem extends BlockItem {
     }
 
     @Override
+    public String getDescriptionId() {
+        return "item.randomthings.returningblockofsticks";
+    }
+
+    @Override
     public void registerBlocks(Map<Block, Item> blockToItemMap, Item item) {
         // Keep the normal block item as Block#asItem while still placing the same block with another state.
     }

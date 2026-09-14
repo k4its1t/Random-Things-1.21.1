@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","pattern":["IBI","BDB","IBI"],"key":{"I":{"item":"minecraft:rotten_flesh"},"B":{"item":"minecraft:ink_sac"},"D":{"item":"minecraft:dirt"}},"result":{"id":"randomthings:fertilizeddirt","count":2}}
+{"type":"minecraft:crafting_shaped","pattern":["IBI","BDB","IBI"],"key":{"I":{"item":"minecraft:rotten_flesh"},"B":{"item":"minecraft:black_dye"},"D":{"item":"minecraft:dirt"}},"result":{"id":"randomthings:fertilizeddirt","count":2}}

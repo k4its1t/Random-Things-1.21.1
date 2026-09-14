@@ -7,9 +7,15 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.CactusBlock;
+import net.minecraft.world.level.block.DeadBushBlock;
+import net.minecraft.world.level.block.MushroomBlock;
+import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.SugarCaneBlock;
+import net.minecraft.world.level.block.VineBlock;
+import net.minecraft.world.level.block.WaterlilyBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -21,6 +27,18 @@ import net.neoforged.neoforge.common.util.TriState;
 public class FertilizedDirtBlock extends Block {
     public static final BooleanProperty TILLED = BooleanProperty.create("tilled");
     private static final VoxelShape TILLED_SHAPE = Block.box(0, 0, 0, 16, 15, 16);
+
+    private enum PlantType {
+        DESERT,
+        NETHER,
+        CROP,
+        CAVE,
+        PLAINS,
+        WATER,
+        BEACH,
+        BEETROOT,
+        UNKNOWN
+    }
 
     public FertilizedDirtBlock(BlockBehaviour.Properties properties) {
         super(properties);
@@ -48,10 +66,14 @@ public class FertilizedDirtBlock extends Block {
             return TriState.DEFAULT;
         }
 
-        if (plant.is(BlockTags.CROPS)) {
-            return state.getValue(TILLED) ? TriState.TRUE : TriState.FALSE;
-        }
-        return state.getValue(TILLED) ? TriState.FALSE : TriState.DEFAULT;
+        boolean tilled = state.getValue(TILLED);
+        return switch (getPlantType(plant)) {
+            case DESERT, CAVE, PLAINS, BEACH -> tilled ? TriState.FALSE : TriState.TRUE;
+            case NETHER, WATER -> TriState.FALSE;
+            case CROP -> tilled ? TriState.TRUE : TriState.FALSE;
+            case BEETROOT -> TriState.TRUE;
+            case UNKNOWN -> TriState.DEFAULT;
+        };
     }
 
     @Override
@@ -59,13 +81,39 @@ public class FertilizedDirtBlock extends Block {
         BlockPos abovePos = pos.above();
         for (int i = 0; i < 3; i++) {
             BlockState above = level.getBlockState(abovePos);
-            if (!above.isRandomlyTicking()
-                    || !(above.getBlock() instanceof BushBlock
-                            || above.getBlock() instanceof CactusBlock
-                            || above.getBlock() instanceof SugarCaneBlock)) {
+            if (!above.isRandomlyTicking() || getPlantType(above) == PlantType.UNKNOWN) {
                 break;
             }
             above.randomTick(level, abovePos, random);
         }
+    }
+
+    private static PlantType getPlantType(BlockState plant) {
+        Block block = plant.getBlock();
+        if (block == Blocks.BEETROOTS) {
+            return PlantType.BEETROOT;
+        }
+        if (plant.is(BlockTags.CROPS)) {
+            return PlantType.CROP;
+        }
+        if (block instanceof CactusBlock || block instanceof DeadBushBlock) {
+            return PlantType.DESERT;
+        }
+        if (block instanceof NetherWartBlock) {
+            return PlantType.NETHER;
+        }
+        if (block instanceof MushroomBlock || block instanceof VineBlock) {
+            return PlantType.CAVE;
+        }
+        if (block instanceof SugarCaneBlock) {
+            return PlantType.BEACH;
+        }
+        if (block instanceof WaterlilyBlock) {
+            return PlantType.WATER;
+        }
+        if (block instanceof BushBlock) {
+            return PlantType.PLAINS;
+        }
+        return PlantType.UNKNOWN;
     }
 }

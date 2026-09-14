@@ -7,6 +7,7 @@ import lumien.randomthings.block.FertilizedDirtBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.block.RainbowLampBlock;
 import lumien.randomthings.block.StickBlock;
+import lumien.randomthings.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -16,12 +17,18 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -55,6 +62,12 @@ public final class RandomThingsGameTests {
         BlockState placed = helper.getBlockState(TEST_POS);
         helper.assertTrue(placed.is(ModBlocks.BLOCK_OF_STICKS.get()), "Returning item did not place the sticks block");
         helper.assertTrue(placed.getValue(StickBlock.RETURNING), "Placed sticks block did not keep the returning state");
+        helper.assertTrue(ModBlocks.BLOCK_OF_STICKS_ITEM.get().getDescriptionId()
+                        .equals("block.randomthings.blockofsticks"),
+                "Normal sticks block description id changed");
+        helper.assertTrue(ModBlocks.RETURNING_BLOCK_OF_STICKS_ITEM.get().getDescriptionId()
+                        .equals("item.randomthings.returningblockofsticks"),
+                "Returning sticks block did not use its item description id");
         helper.assertTrue(
                 placed.getBlock().getCloneItemStack(helper.getLevel(), helper.absolutePos(TEST_POS), placed)
                         .is(ModBlocks.RETURNING_BLOCK_OF_STICKS_ITEM.get()),
@@ -147,6 +160,46 @@ public final class RandomThingsGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
+    public static void blazeAndSteelPlacesFireAndConsumesDurability(GameTestHelper helper) {
+        BlockPos supportPos = TEST_POS.below();
+        helper.setBlock(supportPos, Blocks.STONE);
+        BlockPos absoluteSupportPos = helper.absolutePos(supportPos);
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setPos(absoluteSupportPos.getX() + 0.5, absoluteSupportPos.getY() + 1.0,
+                absoluteSupportPos.getZ() + 0.5);
+        ItemStack stack = new ItemStack(ModItems.BLAZE_AND_STEEL.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+        BlockHitResult validHit = new BlockHitResult(Vec3.atCenterOf(absoluteSupportPos), Direction.UP,
+                absoluteSupportPos, false);
+        helper.assertTrue(stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, validHit)).consumesAction(),
+                "Blaze and Steel rejected a valid fire placement");
+        helper.assertTrue(helper.getBlockState(TEST_POS).is(Blocks.FIRE),
+                "Blaze and Steel did not place normal fire");
+        helper.assertTrue(stack.getDamageValue() == 1,
+                "Blaze and Steel did not consume one durability");
+
+        helper.setBlock(TEST_POS, Blocks.STONE);
+        int damageAfterSuccess = stack.getDamageValue();
+        helper.assertFalse(stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, validHit)).consumesAction(),
+                "Blaze and Steel acted on an occupied target");
+        helper.assertTrue(stack.getDamageValue() == damageAfterSuccess,
+                "Blaze and Steel lost durability on an occupied target");
+
+        BlockPos invalidTarget = TEST_POS.east();
+        helper.setBlock(invalidTarget, Blocks.AIR);
+        BlockHitResult invalidHit = new BlockHitResult(Vec3.atCenterOf(helper.absolutePos(TEST_POS)), Direction.EAST,
+                helper.absolutePos(TEST_POS), false);
+        helper.assertFalse(stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, invalidHit)).consumesAction(),
+                "Blaze and Steel acted where fire cannot survive");
+        helper.assertTrue(stack.getDamageValue() == damageAfterSuccess,
+                "Blaze and Steel lost durability on an invalid target");
+        helper.assertTrue(helper.getBlockState(invalidTarget).is(Blocks.AIR),
+                "Invalid fire target was unexpectedly changed");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
     public static void fertilizedDirtAndToolTagsMatchSupportedUses(GameTestHelper helper) {
         BlockState dirt = ModBlocks.FERTILIZED_DIRT.get().defaultBlockState();
         BlockState tilled = dirt.setValue(FertilizedDirtBlock.TILLED, true);
@@ -169,24 +222,109 @@ public final class RandomThingsGameTests {
                 Blocks.OAK_SAPLING.defaultBlockState());
         helper.assertTrue(dirtForWheat.isFalse() && tilledForWheat.isTrue(),
                 "Crop support does not follow the tilled state");
-        helper.assertTrue(dirtForSapling.isDefault() && tilledForSapling.isFalse(),
-                "Non-crop plant support does not follow the tilled state");
+        helper.assertTrue(dirtForSapling.isTrue() && tilledForSapling.isFalse(),
+                "Plains plant support does not follow the tilled state");
+
+        assertPlantSupport(helper, dirt, tilled, Blocks.BEETROOTS.defaultBlockState(), true, true, "beetroots");
+        assertPlantSupport(helper, dirt, tilled, Blocks.CACTUS.defaultBlockState(), true, false, "cactus");
+        assertPlantSupport(helper, dirt, tilled, Blocks.DEAD_BUSH.defaultBlockState(), true, false, "dead bush");
+        assertPlantSupport(helper, dirt, tilled, Blocks.BROWN_MUSHROOM.defaultBlockState(), true, false, "brown mushroom");
+        assertPlantSupport(helper, dirt, tilled, Blocks.VINE.defaultBlockState(), true, false, "vine");
+        assertPlantSupport(helper, dirt, tilled, Blocks.SUGAR_CANE.defaultBlockState(), true, false, "sugar cane");
+        assertPlantSupport(helper, dirt, tilled, Blocks.LILY_PAD.defaultBlockState(), false, false, "lily pad");
+        assertPlantSupport(helper, dirt, tilled, Blocks.NETHER_WART.defaultBlockState(), false, false, "nether wart");
+        helper.assertTrue(dirt.canSustainPlant(helper.getLevel(), absolutePos, Direction.UP,
+                        Blocks.STONE.defaultBlockState()).isDefault(),
+                "Unknown plants should defer to their own survival rules");
         helper.succeed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
-    public static void allPortedRecipesLoad(GameTestHelper helper) {
-        String[] recipeNames = {
-                "blazeandsteel", "blockofsticks", "returningblockofsticks", "fertilizeddirt",
-                "platform", "platform_spruce", "platform_birch", "platform_jungle", "platform_acacia",
-                "platform_darkoak", "rainbowlamp", "superlubricentstone", "superlubricentplatform",
-                "superlubricentice"
-        };
-        for (String recipeName : recipeNames) {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(RandomThings.MOD_ID, recipeName);
-            helper.assertTrue(helper.getLevel().getServer().getRecipeManager().byKey(id).isPresent(),
-                    "Missing recipe " + id);
-        }
+    public static void allPortedRecipesMatchDefinitions(GameTestHelper helper) {
+        assertRecipe(helper, "blazeandsteel", ModItems.BLAZE_AND_STEEL.get(), 1,
+                Items.IRON_INGOT, Items.BLAZE_POWDER);
+        assertRecipe(helper, "blockofsticks", ModBlocks.BLOCK_OF_STICKS_ITEM.get(), 16,
+                Items.STICK, Items.STICK, Items.STICK, Items.STICK,
+                Items.STICK, Items.STICK, Items.STICK, Items.STICK);
+        assertRecipe(helper, "returningblockofsticks", ModBlocks.RETURNING_BLOCK_OF_STICKS_ITEM.get(), 8,
+                ModBlocks.BLOCK_OF_STICKS_ITEM.get(), ModBlocks.BLOCK_OF_STICKS_ITEM.get(),
+                ModBlocks.BLOCK_OF_STICKS_ITEM.get(), ModBlocks.BLOCK_OF_STICKS_ITEM.get(),
+                ModBlocks.BLOCK_OF_STICKS_ITEM.get(), ModBlocks.BLOCK_OF_STICKS_ITEM.get(),
+                ModBlocks.BLOCK_OF_STICKS_ITEM.get(), ModBlocks.BLOCK_OF_STICKS_ITEM.get(), Items.ENDER_PEARL);
+        assertRecipe(helper, "fertilizeddirt", ModBlocks.FERTILIZED_DIRT_ITEM.get(), 2,
+                Items.ROTTEN_FLESH, Items.ROTTEN_FLESH, Items.ROTTEN_FLESH, Items.ROTTEN_FLESH,
+                Items.BLACK_DYE, Items.BLACK_DYE, Items.BLACK_DYE, Items.BLACK_DYE, Items.DIRT);
+        assertRecipe(helper, "platform", ModBlocks.PLATFORM_ITEM.get(), 6,
+                Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS, Items.ENDER_PEARL);
+        assertRecipe(helper, "platform_spruce", ModBlocks.PLATFORM_SPRUCE_ITEM.get(), 6,
+                Items.SPRUCE_PLANKS, Items.SPRUCE_PLANKS, Items.SPRUCE_PLANKS, Items.ENDER_PEARL);
+        assertRecipe(helper, "platform_birch", ModBlocks.PLATFORM_BIRCH_ITEM.get(), 6,
+                Items.BIRCH_PLANKS, Items.BIRCH_PLANKS, Items.BIRCH_PLANKS, Items.ENDER_PEARL);
+        assertRecipe(helper, "platform_jungle", ModBlocks.PLATFORM_JUNGLE_ITEM.get(), 6,
+                Items.JUNGLE_PLANKS, Items.JUNGLE_PLANKS, Items.JUNGLE_PLANKS, Items.ENDER_PEARL);
+        assertRecipe(helper, "platform_acacia", ModBlocks.PLATFORM_ACACIA_ITEM.get(), 6,
+                Items.ACACIA_PLANKS, Items.ACACIA_PLANKS, Items.ACACIA_PLANKS, Items.ENDER_PEARL);
+        assertRecipe(helper, "platform_darkoak", ModBlocks.PLATFORM_DARK_OAK_ITEM.get(), 6,
+                Items.DARK_OAK_PLANKS, Items.DARK_OAK_PLANKS, Items.DARK_OAK_PLANKS, Items.ENDER_PEARL);
+        assertRecipe(helper, "rainbowlamp", ModBlocks.RAINBOW_LAMP_ITEM.get(), 1,
+                Items.GREEN_DYE, Items.RED_DYE, Items.REDSTONE_LAMP, Items.BLUE_DYE);
+        assertRecipe(helper, "superlubricentstone", ModBlocks.SUPER_LUBRICENT_STONE_ITEM.get(), 8,
+                Items.STONE, Items.STONE, Items.STONE, Items.STONE, Items.STONE, Items.STONE, Items.STONE,
+                Items.STONE, ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get());
+        assertRecipe(helper, "superlubricentplatform", ModBlocks.SUPER_LUBRICENT_PLATFORM_ITEM.get(), 6,
+                ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get(), ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get(),
+                ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get(), Items.ENDER_PEARL);
+        assertRecipe(helper, "superlubricentice", ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get(), 16,
+                Items.SLIME_BALL, Items.ICE, Items.WATER_BUCKET);
         helper.succeed();
+    }
+
+    private static void assertPlantSupport(GameTestHelper helper, BlockState dirt, BlockState tilled,
+            BlockState plant, boolean normalExpected, boolean tilledExpected, String name) {
+        BlockPos pos = helper.absolutePos(TEST_POS);
+        TriState normal = dirt.canSustainPlant(helper.getLevel(), pos, Direction.UP, plant);
+        TriState tilledState = tilled.canSustainPlant(helper.getLevel(), pos, Direction.UP, plant);
+        helper.assertTrue(normal == (normalExpected ? TriState.TRUE : TriState.FALSE)
+                        && tilledState == (tilledExpected ? TriState.TRUE : TriState.FALSE),
+                "Unexpected fertilized dirt support for " + name);
+    }
+
+    private static void assertRecipe(GameTestHelper helper, String recipeName, ItemLike output, int outputCount,
+            ItemLike... ingredients) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(RandomThings.MOD_ID, recipeName);
+        var holder = helper.getLevel().getServer().getRecipeManager().byKey(id).orElseThrow(
+                () -> new AssertionError("Missing recipe " + id));
+        helper.assertTrue(holder.value() instanceof CraftingRecipe && holder.value() instanceof ShapedRecipe,
+                "Recipe is not a shaped crafting recipe: " + id);
+        if (!(holder.value() instanceof CraftingRecipe recipe)) {
+            return;
+        }
+
+        ItemStack result = recipe.getResultItem(helper.getLevel().registryAccess());
+        helper.assertTrue(result.is(output.asItem()) && result.getCount() == outputCount,
+                "Unexpected output for " + id + ": " + result);
+        helper.assertTrue(recipe.getType() == RecipeType.CRAFTING,
+                "Unexpected recipe type for " + id);
+
+        List<Ingredient> actualIngredients = recipe.getIngredients().stream()
+                .filter(ingredient -> !ingredient.isEmpty())
+                .toList();
+        helper.assertTrue(actualIngredients.size() == ingredients.length,
+                "Unexpected ingredient count for " + id);
+        boolean[] matched = new boolean[actualIngredients.size()];
+        for (ItemLike expected : ingredients) {
+            ItemStack probe = new ItemStack(expected.asItem());
+            int match = -1;
+            for (int i = 0; i < actualIngredients.size(); i++) {
+                if (!matched[i] && actualIngredients.get(i).test(probe)) {
+                    match = i;
+                    break;
+                }
+            }
+            helper.assertTrue(match >= 0, "Missing ingredient " + expected.asItem() + " for " + id);
+            if (match >= 0) {
+                matched[match] = true;
+            }
+        }
     }
 }
