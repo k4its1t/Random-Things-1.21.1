@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=down,powered=false": { "model": "randomthings:block/contactbutton_vertical", "x": 180 },
+    "facing=up,powered=false": { "model": "randomthings:block/contactbutton_vertical" },
+    "facing=north,powered=false": { "model": "randomthings:block/contactbutton" },
+    "facing=south,powered=false": { "model": "randomthings:block/contactbutton", "y": 180 },
+    "facing=west,powered=false": { "model": "randomthings:block/contactbutton", "y": 270 },
+    "facing=east,powered=false": { "model": "randomthings:block/contactbutton", "y": 90 },
+    "facing=down,powered=true": { "model": "randomthings:block/contactbuttonactive_vertical", "x": 180 },
+    "facing=up,powered=true": { "model": "randomthings:block/contactbuttonactive_vertical" },
+    "facing=north,powered=true": { "model": "randomthings:block/contactbuttonactive" },
+    "facing=south,powered=true": { "model": "randomthings:block/contactbuttonactive", "y": 180 },
+    "facing=west,powered=true": { "model": "randomthings:block/contactbuttonactive", "y": 270 },
+    "facing=east,powered=true": { "model": "randomthings:block/contactbuttonactive", "y": 90 }
+  }
+}

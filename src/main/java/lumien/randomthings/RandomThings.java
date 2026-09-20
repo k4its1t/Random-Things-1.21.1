@@ -39,6 +39,9 @@ public final class RandomThings {
                         output.accept(ModBlocks.SUPER_LUBRICENT_PLATFORM_ITEM.get());
                         output.accept(ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get());
                         output.accept(ModBlocks.BASIC_REDSTONE_INTERFACE_ITEM.get());
+                        output.accept(ModBlocks.CONTACT_BUTTON_ITEM.get());
+                        output.accept(ModBlocks.CONTACT_LEVER_ITEM.get());
+                        output.accept(ModBlocks.SIDED_REDSTONE_ITEM.get());
                         output.accept(ModItems.BLAZE_AND_STEEL.get());
                         output.accept(ModItems.BOTTLE_OF_AIR.get());
                         output.accept(ModItems.STABLE_ENDER_PEARL.get());

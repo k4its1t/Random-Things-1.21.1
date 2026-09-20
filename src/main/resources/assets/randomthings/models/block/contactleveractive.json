@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "randomthings:block/contactlever/sideactive",
+    "front": "randomthings:block/contactlever/front",
+    "side": "randomthings:block/contactlever/sideactive"
+  }
+}

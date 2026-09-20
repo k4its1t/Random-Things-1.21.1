@@ -2,6 +2,9 @@
   "replace": false,
   "values": [
     "randomthings:basicredstoneinterface",
+    "randomthings:contactbutton",
+    "randomthings:contactlever",
+    "randomthings:sidedredstone",
     "randomthings:superlubricentstone",
     "randomthings:superlubricentplatform",
     "randomthings:superlubricentice"

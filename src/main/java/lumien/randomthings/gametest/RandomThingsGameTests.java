@@ -4,8 +4,11 @@ import java.util.List;
 
 import lumien.randomthings.RandomThings;
 import lumien.randomthings.block.FertilizedDirtBlock;
+import lumien.randomthings.block.ContactRedstoneBlock;
+import lumien.randomthings.block.ContactRedstoneEvents;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.block.RainbowLampBlock;
+import lumien.randomthings.block.SidedRedstoneBlock;
 import lumien.randomthings.block.StickBlock;
 import lumien.randomthings.block.entity.BasicRedstoneInterfaceBlockEntity;
 import lumien.randomthings.item.ModItems;
@@ -99,7 +102,10 @@ public final class RandomThingsGameTests {
                 ModBlocks.FERTILIZED_DIRT.get(),
                 ModBlocks.SUPER_LUBRICENT_STONE.get(),
                 ModBlocks.SUPER_LUBRICENT_PLATFORM.get(),
-                ModBlocks.SUPER_LUBRICENT_ICE.get());
+                ModBlocks.SUPER_LUBRICENT_ICE.get(),
+                ModBlocks.CONTACT_BUTTON.get(),
+                ModBlocks.CONTACT_LEVER.get(),
+                ModBlocks.SIDED_REDSTONE.get());
 
         BlockPos absolutePos = helper.absolutePos(TEST_POS);
         for (Block block : blocks) {
@@ -137,6 +143,52 @@ public final class RandomThingsGameTests {
                 .thenExecute(() -> helper.setBlock(powerPos, Blocks.AIR))
                 .thenIdle(5)
                 .thenExecute(() -> helper.assertBlockProperty(lampPos, RainbowLampBlock.COLOR, DyeColor.WHITE))
+                .thenSucceed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 40)
+    public static void contactControlsAndSidedRedstoneMatchLegacyBehavior(GameTestHelper helper) {
+        BlockPos clickedPos = TEST_POS;
+        BlockPos buttonPos = clickedPos.east();
+        BlockPos leverPos = clickedPos.north();
+        BlockPos sidedPos = clickedPos.above();
+
+        helper.setBlock(clickedPos, Blocks.STONE);
+        helper.setBlock(buttonPos, ModBlocks.CONTACT_BUTTON.get().defaultBlockState()
+                .setValue(ContactRedstoneBlock.FACING, Direction.WEST));
+        BlockState sided = ModBlocks.SIDED_REDSTONE.get().defaultBlockState()
+                .setValue(SidedRedstoneBlock.FACING, Direction.EAST);
+        helper.setBlock(sidedPos, sided);
+        BlockPos absoluteSidedPos = helper.absolutePos(sidedPos);
+        helper.assertTrue(sided.getSignal(helper.getLevel(), absoluteSidedPos, Direction.WEST) == 15,
+                "Sided redstone did not power its front face");
+        helper.assertTrue(sided.getSignal(helper.getLevel(), absoluteSidedPos, Direction.EAST) == 0,
+                "Sided redstone powered its back face");
+        helper.assertTrue(!sided.shouldCheckWeakPower(helper.getLevel(), absoluteSidedPos, Direction.WEST),
+                "Sided redstone allowed indirect weak-power leakage");
+
+        helper.assertTrue(ContactRedstoneEvents.activateNeighbor(helper.getLevel(), helper.absolutePos(clickedPos)),
+                "Right-clicking the adjacent block did not find a contact control");
+        helper.assertBlockProperty(buttonPos, ContactRedstoneBlock.POWERED, true);
+        BlockState poweredButton = helper.getBlockState(buttonPos);
+        helper.assertTrue(poweredButton.getSignal(helper.getLevel(), helper.absolutePos(buttonPos), Direction.NORTH) == 15
+                        && poweredButton.getDirectSignal(helper.getLevel(), helper.absolutePos(buttonPos), Direction.NORTH) == 15,
+                "Powered contact button did not provide weak and direct power");
+
+        helper.startSequence()
+                .thenIdle(21)
+                .thenExecute(() -> helper.assertBlockProperty(buttonPos, ContactRedstoneBlock.POWERED, false))
+                .thenExecute(() -> {
+                    helper.setBlock(buttonPos, Blocks.AIR);
+                    helper.setBlock(leverPos, ModBlocks.CONTACT_LEVER.get().defaultBlockState()
+                            .setValue(ContactRedstoneBlock.FACING, Direction.SOUTH));
+                    helper.assertTrue(ContactRedstoneEvents.activateNeighbor(
+                                    helper.getLevel(), helper.absolutePos(clickedPos)),
+                            "Contact lever was not activated through its front block");
+                    helper.assertBlockProperty(leverPos, ContactRedstoneBlock.POWERED, true);
+                    ContactRedstoneEvents.activateNeighbor(helper.getLevel(), helper.absolutePos(clickedPos));
+                    helper.assertBlockProperty(leverPos, ContactRedstoneBlock.POWERED, false);
+                })
                 .thenSucceed();
     }
 
@@ -326,6 +378,18 @@ public final class RandomThingsGameTests {
                 Items.STRING, Items.GOLD_INGOT, Items.ENDER_PEARL,
                 Items.GOLD_INGOT, Items.STRING, Items.GOLD_INGOT,
                 Items.ENDER_PEARL, Items.GOLD_INGOT, Items.STRING);
+        assertRecipe(helper, "contactbutton", ModBlocks.CONTACT_BUTTON_ITEM.get(), 1,
+                Items.STONE, Items.IRON_BARS, Items.STONE,
+                Items.STONE, Items.STONE_BUTTON, Items.STONE,
+                Items.STONE, Items.STONE, Items.STONE);
+        assertRecipe(helper, "contactlever", ModBlocks.CONTACT_LEVER_ITEM.get(), 1,
+                Items.STONE, Items.IRON_BARS, Items.STONE,
+                Items.STONE, Items.LEVER, Items.STONE,
+                Items.STONE, Items.STONE, Items.STONE);
+        assertRecipe(helper, "sidedredstone", ModBlocks.SIDED_REDSTONE_ITEM.get(), 1,
+                Items.GUNPOWDER, Items.GUNPOWDER, Items.REDSTONE,
+                Items.GUNPOWDER, Items.GUNPOWDER, Items.REDSTONE,
+                Items.GUNPOWDER, Items.GUNPOWDER, Items.REDSTONE);
         helper.succeed();
     }
 

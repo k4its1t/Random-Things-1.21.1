@@ -58,6 +58,18 @@ public final class ModBlocks {
             new BasicRedstoneInterfaceBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)
                     .strength(2.0F).sound(SoundType.STONE)));
 
+    public static final DeferredBlock<Block> CONTACT_BUTTON = BLOCKS.register("contactbutton", () ->
+            new ContactRedstoneBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)
+                    .strength(1.5F).sound(SoundType.STONE), true));
+
+    public static final DeferredBlock<Block> CONTACT_LEVER = BLOCKS.register("contactlever", () ->
+            new ContactRedstoneBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)
+                    .strength(1.5F).sound(SoundType.STONE), false));
+
+    public static final DeferredBlock<Block> SIDED_REDSTONE = BLOCKS.register("sidedredstone", () ->
+            new SidedRedstoneBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL)
+                    .strength(5.0F, 10.0F).sound(SoundType.METAL)));
+
     public static final DeferredItem<BlockItem> PLATFORM_ITEM = blockItem("platform", PLATFORM);
     public static final DeferredItem<BlockItem> PLATFORM_SPRUCE_ITEM = blockItem("platform_spruce", PLATFORM_SPRUCE);
     public static final DeferredItem<BlockItem> PLATFORM_BIRCH_ITEM = blockItem("platform_birch", PLATFORM_BIRCH);
@@ -75,6 +87,9 @@ public final class ModBlocks {
     public static final DeferredItem<BlockItem> SUPER_LUBRICENT_ICE_ITEM = blockItem("superlubricentice", SUPER_LUBRICENT_ICE);
     public static final DeferredItem<BlockItem> BASIC_REDSTONE_INTERFACE_ITEM = blockItem(
             "basicredstoneinterface", BASIC_REDSTONE_INTERFACE);
+    public static final DeferredItem<BlockItem> CONTACT_BUTTON_ITEM = blockItem("contactbutton", CONTACT_BUTTON);
+    public static final DeferredItem<BlockItem> CONTACT_LEVER_ITEM = blockItem("contactlever", CONTACT_LEVER);
+    public static final DeferredItem<BlockItem> SIDED_REDSTONE_ITEM = blockItem("sidedredstone", SIDED_REDSTONE);
 
     private static DeferredItem<BlockItem> blockItem(String name, DeferredBlock<Block> block) {
         return ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
