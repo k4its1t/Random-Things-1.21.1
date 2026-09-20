@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.block.ModBlocks;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -12,7 +13,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 
 public class BlazeAndSteelItem extends Item {
     public BlazeAndSteelItem(Properties properties) {
@@ -29,10 +29,10 @@ public class BlazeAndSteelItem extends Item {
         if (player == null || !player.mayUseItemAt(target, context.getClickedFace(), stack)) {
             return InteractionResult.FAIL;
         }
-        if (level.isEmptyBlock(target) && Blocks.FIRE.defaultBlockState().canSurvive(level, target)) {
+        if (level.isEmptyBlock(target) && ModBlocks.BLAZING_FIRE.get().defaultBlockState().canSurvive(level, target)) {
             level.playSound(player, target, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS,
                     1.0F, level.getRandom().nextFloat() * 0.8F + 0.8F);
-            level.setBlock(target, Blocks.FIRE.defaultBlockState(), 11);
+            level.setBlock(target, ModBlocks.BLAZING_FIRE.get().defaultBlockState(), 11);
             if (!level.isClientSide) {
                 stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
             }

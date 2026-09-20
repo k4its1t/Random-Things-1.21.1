@@ -5,6 +5,7 @@ import lumien.randomthings.item.ReturningBlockOfSticksItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -49,6 +50,9 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> SUPER_LUBRICENT_ICE = BLOCKS.register("superlubricentice", () -> new SuperLubricentIceBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.ICE).strength(0.5F).friction(1.0F / 0.98F)
                     .sound(SoundType.GLASS).noOcclusion()));
+
+    public static final DeferredBlock<Block> BLAZING_FIRE = BLOCKS.register("blazingfire", () -> new BlazingFireBlock(
+            BlockBehaviour.Properties.ofFullCopy(Blocks.FIRE).noLootTable()));
 
     public static final DeferredItem<BlockItem> PLATFORM_ITEM = blockItem("platform", PLATFORM);
     public static final DeferredItem<BlockItem> PLATFORM_SPRUCE_ITEM = blockItem("platform_spruce", PLATFORM_SPRUCE);

@@ -13,5 +13,8 @@
   "block.randomthings.superlubricentstone":"超级滑滑石",
   "block.randomthings.superlubricentplatform":"超级润滑平台",
   "block.randomthings.superlubricentice":"超级润滑冰",
-  "item.randomthings.blazeandsteel":"灼炎打火石"
+  "item.randomthings.blazeandsteel":"灼炎打火石",
+  "item.randomthings.bottleofair":"瓶装空气",
+  "item.randomthings.stableenderpearl":"稳态末影珍珠",
+  "tooltip.randomthings.stableenderpearl.boundto":"已与%s绑定"
 }

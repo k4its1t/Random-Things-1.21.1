@@ -13,5 +13,8 @@
   "block.randomthings.superlubricentstone":"Super Lubricent Stone",
   "block.randomthings.superlubricentplatform":"Super Lubricent Platform",
   "block.randomthings.superlubricentice":"Super Lubricent Ice",
-  "item.randomthings.blazeandsteel":"Blaze and Steel"
+  "item.randomthings.blazeandsteel":"Blaze and Steel",
+  "item.randomthings.bottleofair":"Bottle of Air",
+  "item.randomthings.stableenderpearl":"Stable Ender Pearl",
+  "tooltip.randomthings.stableenderpearl.boundto":"Bound to %s"
 }

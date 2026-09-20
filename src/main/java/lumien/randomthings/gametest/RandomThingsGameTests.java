@@ -10,20 +10,28 @@ import lumien.randomthings.block.StickBlock;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -174,8 +182,14 @@ public final class RandomThingsGameTests {
                 absoluteSupportPos, false);
         helper.assertTrue(stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, validHit)).consumesAction(),
                 "Blaze and Steel rejected a valid fire placement");
-        helper.assertTrue(helper.getBlockState(TEST_POS).is(Blocks.FIRE),
-                "Blaze and Steel did not place normal fire");
+        BlockState blazingFire = helper.getBlockState(TEST_POS);
+        helper.assertTrue(blazingFire.is(ModBlocks.BLAZING_FIRE.get()),
+                "Blaze and Steel did not place Blazing Fire");
+        helper.assertTrue(blazingFire.is(BlockTags.FIRE), "Blazing Fire is missing the fire tag");
+        helper.assertTrue(blazingFire.getValue(FireBlock.AGE) == 0,
+                "Newly placed Blazing Fire did not start at age zero");
+        helper.assertTrue(blazingFire.getCollisionShape(helper.getLevel(), helper.absolutePos(TEST_POS)).isEmpty(),
+                "Blazing Fire unexpectedly has collision");
         helper.assertTrue(stack.getDamageValue() == 1,
                 "Blaze and Steel did not consume one durability");
 
@@ -197,6 +211,22 @@ public final class RandomThingsGameTests {
         helper.assertTrue(helper.getBlockState(invalidTarget).is(Blocks.AIR),
                 "Invalid fire target was unexpectedly changed");
         helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 30)
+    public static void blazingFireUsesAcceleratedTickRate(GameTestHelper helper) {
+        helper.setBlock(TEST_POS.below(), Blocks.STONE);
+        var fireTickRule = helper.getLevel().getGameRules().getRule(GameRules.RULE_DOFIRETICK);
+        boolean previousFireTick = fireTickRule.get();
+        fireTickRule.set(true, helper.getLevel().getServer());
+        helper.getLevel().setBlock(helper.absolutePos(TEST_POS),
+                ModBlocks.BLAZING_FIRE.get().defaultBlockState().setValue(FireBlock.AGE, 15), Block.UPDATE_ALL);
+
+        helper.startSequence()
+                .thenIdle(25)
+                .thenExecute(() -> helper.assertBlockNotPresent(ModBlocks.BLAZING_FIRE.get(), TEST_POS))
+                .thenExecute(() -> fireTickRule.set(previousFireTick, helper.getLevel().getServer()))
+                .thenSucceed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
@@ -276,6 +306,75 @@ public final class RandomThingsGameTests {
                 ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get(), Items.ENDER_PEARL);
         assertRecipe(helper, "superlubricentice", ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get(), 16,
                 Items.SLIME_BALL, Items.ICE, Items.WATER_BUCKET);
+        assertRecipe(helper, "stableenderpearl", ModItems.STABLE_ENDER_PEARL.get(), 1,
+                Items.OBSIDIAN, Items.LAPIS_LAZULI, Items.OBSIDIAN,
+                Items.LAPIS_LAZULI, Items.ENDER_PEARL, Items.LAPIS_LAZULI,
+                Items.OBSIDIAN, Items.LAPIS_LAZULI, Items.OBSIDIAN);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void bottleOfAirRestoresAirOnlyWhileUsed(GameTestHelper helper) {
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bottle = new ItemStack(ModItems.BOTTLE_OF_AIR.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, bottle);
+
+        helper.assertTrue(bottle.getRarity() == Rarity.RARE, "Bottle of Air is not rare");
+        helper.assertTrue(bottle.getUseAnimation() == UseAnim.DRINK, "Bottle of Air does not use the drink animation");
+        helper.assertTrue(bottle.getUseDuration(player) == 72_000, "Bottle of Air cannot be used continuously");
+        helper.assertTrue(ModItems.BOTTLE_OF_AIR.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND)
+                        .getResult() == InteractionResult.FAIL,
+                "Bottle of Air started being used outside water");
+
+        player.setAirSupply(100);
+        ModItems.BOTTLE_OF_AIR.get().onUseTick(helper.getLevel(), player, bottle, 10);
+        helper.assertTrue(player.getAirSupply() == 120, "Bottle of Air did not restore 20 air");
+        BlockPos waterPos = helper.absolutePos(TEST_POS);
+        helper.setBlock(TEST_POS, Blocks.WATER);
+        player.setPos(waterPos.getX() + 0.5D, waterPos.getY() - 1.2D, waterPos.getZ() + 0.5D);
+        player.setAirSupply(player.getMaxAirSupply() - 5);
+        ModItems.BOTTLE_OF_AIR.get().onUseTick(helper.getLevel(), player, bottle, 5);
+        helper.assertTrue(player.getAirSupply() == player.getMaxAirSupply(),
+                "Bottle of Air exceeded or failed to reach maximum air");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void stableEnderPearlBindsAndTeleportsNearbyEntity(GameTestHelper helper) {
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack boundPearl = new ItemStack(ModItems.STABLE_ENDER_PEARL.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, boundPearl);
+        ModItems.STABLE_ENDER_PEARL.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+        CustomData binding = boundPearl.get(DataComponents.CUSTOM_DATA);
+        helper.assertTrue(binding != null, "Stable Ender Pearl did not create binding data");
+        if (binding != null) {
+            var tag = binding.copyTag();
+            helper.assertTrue(tag.hasUUID("player-uuid") && tag.getUUID("player-uuid").equals(player.getUUID()),
+                    "Stable Ender Pearl stored the wrong player UUID");
+            helper.assertTrue(tag.getString("player-name").equals(player.getGameProfile().getName()),
+                    "Stable Ender Pearl stored the wrong player name");
+        }
+
+        BlockPos pearlPos = helper.absolutePos(TEST_POS);
+        player.setPos(pearlPos.getX() + 50.0D, pearlPos.getY(), pearlPos.getZ());
+        var armorStand = EntityType.ARMOR_STAND.create(helper.getLevel());
+        helper.assertTrue(armorStand != null, "Could not create armor stand for teleport test");
+        if (armorStand == null) {
+            return;
+        }
+        armorStand.setPos(pearlPos.getX() + 3.5D, pearlPos.getY(), pearlPos.getZ() + 0.5D);
+        helper.getLevel().addFreshEntity(armorStand);
+
+        ItemStack unboundPearl = new ItemStack(ModItems.STABLE_ENDER_PEARL.get());
+        ItemEntity droppedPearl = new ItemEntity(helper.getLevel(), pearlPos.getX() + 0.5D,
+                pearlPos.getY(), pearlPos.getZ() + 0.5D, unboundPearl);
+        droppedPearl.getPersistentData().putInt("randomthings_stable_ender_pearl_counter", 140);
+        helper.assertTrue(ModItems.STABLE_ENDER_PEARL.get().onEntityItemUpdate(unboundPearl, droppedPearl),
+                "Stable Ender Pearl did not complete its delayed update");
+        helper.assertTrue(droppedPearl.isRemoved(), "Stable Ender Pearl was not consumed after teleporting");
+        helper.assertTrue(armorStand.position().distanceTo(droppedPearl.position()) < 0.01D,
+                "Stable Ender Pearl did not teleport the nearby entity");
         helper.succeed();
     }
 
