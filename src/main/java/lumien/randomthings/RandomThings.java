@@ -1,6 +1,7 @@
 package lumien.randomthings;
 
 import lumien.randomthings.block.ModBlocks;
+import lumien.randomthings.block.entity.ModBlockEntities;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -37,9 +38,13 @@ public final class RandomThings {
                         output.accept(ModBlocks.SUPER_LUBRICENT_STONE_ITEM.get());
                         output.accept(ModBlocks.SUPER_LUBRICENT_PLATFORM_ITEM.get());
                         output.accept(ModBlocks.SUPER_LUBRICENT_ICE_ITEM.get());
+                        output.accept(ModBlocks.BASIC_REDSTONE_INTERFACE_ITEM.get());
                         output.accept(ModItems.BLAZE_AND_STEEL.get());
                         output.accept(ModItems.BOTTLE_OF_AIR.get());
                         output.accept(ModItems.STABLE_ENDER_PEARL.get());
+                        output.accept(ModItems.REDSTONE_TOOL.get());
+                        output.accept(ModItems.REDSTONE_ACTIVATOR.get());
+                        output.accept(ModItems.ESCAPE_ROPE.get());
                     })
                     .build());
 
@@ -47,6 +52,7 @@ public final class RandomThings {
         ModBlocks.BLOCKS.register(modEventBus);
         ModBlocks.ITEMS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
+        ModBlockEntities.BLOCK_ENTITY_TYPES.register(modEventBus);
         CREATIVE_TABS.register(modEventBus);
     }
 }

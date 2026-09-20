@@ -16,5 +16,11 @@
   "item.randomthings.blazeandsteel":"灼炎打火石",
   "item.randomthings.bottleofair":"瓶装空气",
   "item.randomthings.stableenderpearl":"稳态末影珍珠",
-  "tooltip.randomthings.stableenderpearl.boundto":"已与%s绑定"
+  "block.randomthings.basicredstoneinterface":"基础红石接口",
+  "item.randomthings.redstonetool":"红石工具",
+  "item.randomthings.redstoneactivator":"红石激活器",
+  "item.randomthings.escaperope":"逃生绳",
+  "tooltip.randomthings.redstoneactivator.duration":"持续时间：%s tick",
+  "tooltip.randomthings.stableenderpearl.boundto":"已与%s绑定",
+  "tooltip.randomthings.escaperope":"在洞穴中持续使用，以搜索出口并传送至地表。"
 }

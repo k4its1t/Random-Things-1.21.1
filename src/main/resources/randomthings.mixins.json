@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "lumien.randomthings.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "SignalGetterMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

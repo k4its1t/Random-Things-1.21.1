@@ -16,5 +16,11 @@
   "item.randomthings.blazeandsteel":"Blaze and Steel",
   "item.randomthings.bottleofair":"Bottle of Air",
   "item.randomthings.stableenderpearl":"Stable Ender Pearl",
-  "tooltip.randomthings.stableenderpearl.boundto":"Bound to %s"
+  "block.randomthings.basicredstoneinterface":"Basic Redstone Interface",
+  "item.randomthings.redstonetool":"Redstone Tool",
+  "item.randomthings.redstoneactivator":"Redstone Activator",
+  "item.randomthings.escaperope":"Escape Rope",
+  "tooltip.randomthings.redstoneactivator.duration":"Duration: %s ticks",
+  "tooltip.randomthings.stableenderpearl.boundto":"Bound to %s",
+  "tooltip.randomthings.escaperope":"Hold use in a cave to search for and teleport to the surface."
 }

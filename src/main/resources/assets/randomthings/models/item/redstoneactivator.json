@@ -1,0 +1,26 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "randomthings:item/redstoneactivator_1"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 0
+      },
+      "model": "randomthings:item/redstoneactivator_0"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "randomthings:item/redstoneactivator_1"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "randomthings:item/redstoneactivator_2"
+    }
+  ]
+}

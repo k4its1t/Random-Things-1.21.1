@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
+    "randomthings:basicredstoneinterface",
     "randomthings:superlubricentstone",
     "randomthings:superlubricentplatform",
     "randomthings:superlubricentice"

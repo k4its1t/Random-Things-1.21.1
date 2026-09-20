@@ -54,6 +54,10 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> BLAZING_FIRE = BLOCKS.register("blazingfire", () -> new BlazingFireBlock(
             BlockBehaviour.Properties.ofFullCopy(Blocks.FIRE).noLootTable()));
 
+    public static final DeferredBlock<Block> BASIC_REDSTONE_INTERFACE = BLOCKS.register("basicredstoneinterface", () ->
+            new BasicRedstoneInterfaceBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)
+                    .strength(2.0F).sound(SoundType.STONE)));
+
     public static final DeferredItem<BlockItem> PLATFORM_ITEM = blockItem("platform", PLATFORM);
     public static final DeferredItem<BlockItem> PLATFORM_SPRUCE_ITEM = blockItem("platform_spruce", PLATFORM_SPRUCE);
     public static final DeferredItem<BlockItem> PLATFORM_BIRCH_ITEM = blockItem("platform_birch", PLATFORM_BIRCH);
@@ -69,6 +73,8 @@ public final class ModBlocks {
     public static final DeferredItem<BlockItem> SUPER_LUBRICENT_STONE_ITEM = blockItem("superlubricentstone", SUPER_LUBRICENT_STONE);
     public static final DeferredItem<BlockItem> SUPER_LUBRICENT_PLATFORM_ITEM = blockItem("superlubricentplatform", SUPER_LUBRICENT_PLATFORM);
     public static final DeferredItem<BlockItem> SUPER_LUBRICENT_ICE_ITEM = blockItem("superlubricentice", SUPER_LUBRICENT_ICE);
+    public static final DeferredItem<BlockItem> BASIC_REDSTONE_INTERFACE_ITEM = blockItem(
+            "basicredstoneinterface", BASIC_REDSTONE_INTERFACE);
 
     private static DeferredItem<BlockItem> blockItem(String name, DeferredBlock<Block> block) {
         return ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));

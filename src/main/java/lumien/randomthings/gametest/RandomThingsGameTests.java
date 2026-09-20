@@ -7,6 +7,7 @@ import lumien.randomthings.block.FertilizedDirtBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.block.RainbowLampBlock;
 import lumien.randomthings.block.StickBlock;
+import lumien.randomthings.block.entity.BasicRedstoneInterfaceBlockEntity;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,6 +34,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -310,7 +312,181 @@ public final class RandomThingsGameTests {
                 Items.OBSIDIAN, Items.LAPIS_LAZULI, Items.OBSIDIAN,
                 Items.LAPIS_LAZULI, Items.ENDER_PEARL, Items.LAPIS_LAZULI,
                 Items.OBSIDIAN, Items.LAPIS_LAZULI, Items.OBSIDIAN);
+        assertRecipe(helper, "basicredstoneinterface", ModBlocks.BASIC_REDSTONE_INTERFACE_ITEM.get(), 1,
+                Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT,
+                Items.REDSTONE, ModItems.STABLE_ENDER_PEARL.get(), Items.REDSTONE,
+                Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT);
+        assertRecipe(helper, "redstonetool", ModItems.REDSTONE_TOOL.get(), 1,
+                Items.REDSTONE, Items.STICK, Items.STICK);
+        assertRecipe(helper, "redstoneactivator", ModItems.REDSTONE_ACTIVATOR.get(), 1,
+                Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT,
+                Items.IRON_INGOT, Items.REDSTONE_TORCH, Items.IRON_INGOT,
+                Items.IRON_INGOT, Items.IRON_INGOT, Items.IRON_INGOT);
+        assertRecipe(helper, "escaperope", ModItems.ESCAPE_ROPE.get(), 1,
+                Items.STRING, Items.GOLD_INGOT, Items.ENDER_PEARL,
+                Items.GOLD_INGOT, Items.STRING, Items.GOLD_INGOT,
+                Items.ENDER_PEARL, Items.GOLD_INGOT, Items.STRING);
         helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void escapeRopeSearchesForSurfaceAndConsumesDurability(GameTestHelper helper) {
+        for (int x = 0; x <= 4; x++) {
+            for (int z = 0; z <= 4; z++) {
+                helper.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(TEST_POS, Blocks.AIR);
+        helper.setBlock(TEST_POS.above(), Blocks.STONE);
+
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos absoluteStart = helper.absolutePos(TEST_POS);
+        BlockPos absoluteExit = absoluteStart.east();
+        int exitHeight = helper.getLevel().getHeight(Heightmap.Types.MOTION_BLOCKING,
+                absoluteExit.getX(), absoluteExit.getZ());
+        for (int y = absoluteStart.getY(); y < exitHeight; y++) {
+            helper.getLevel().setBlock(new BlockPos(absoluteExit.getX(), y, absoluteExit.getZ()),
+                    Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        }
+        player.setPos(absoluteStart.getX() + 0.5D, absoluteStart.getY(), absoluteStart.getZ() + 0.5D);
+        ItemStack rope = new ItemStack(ModItems.ESCAPE_ROPE.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, rope);
+
+        helper.assertTrue(helper.getLevel().dimensionType().hasSkyLight(),
+                "Escape Rope test level has no skylight");
+        helper.assertTrue(helper.getLevel().getHeight(Heightmap.Types.MOTION_BLOCKING,
+                        absoluteStart.getX(), absoluteStart.getZ()) > absoluteStart.getY(),
+                "Escape Rope test start is not covered");
+        helper.assertTrue(helper.getLevel().getBlockState(absoluteStart)
+                        .getCollisionShape(helper.getLevel(), absoluteStart).isEmpty(),
+                "Escape Rope test start is not passable");
+        helper.assertValueEqual(player.blockPosition(), absoluteStart,
+                "Escape Rope test player is not at the expected start");
+        helper.assertTrue(helper.getLevel().hasChunkAt(absoluteExit),
+                "Escape Rope test exit chunk is not loaded");
+        helper.assertTrue(helper.getLevel().getBlockState(absoluteExit)
+                        .getCollisionShape(helper.getLevel(), absoluteExit).isEmpty(),
+                "Escape Rope test exit is not passable");
+        helper.assertTrue(helper.getLevel().getHeight(Heightmap.Types.MOTION_BLOCKING,
+                        absoluteExit.getX(), absoluteExit.getZ()) <= absoluteExit.getY(),
+                "Escape Rope test exit cannot see the sky");
+        helper.assertTrue(rope.getUseAnimation() == UseAnim.BOW, "Escape Rope does not use the bow animation");
+        helper.assertTrue(rope.getUseDuration(player) == 1_200, "Escape Rope use duration changed");
+        helper.assertTrue(ModItems.ESCAPE_ROPE.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND)
+                        .getResult().consumesAction(),
+                "Escape Rope did not begin searching underground");
+        helper.assertTrue(ModItems.ESCAPE_ROPE.get().isFoil(rope),
+                "Escape Rope does not glow while searching");
+
+        for (int remaining = 1_199; remaining > 1_179 && rope.getDamageValue() == 0; remaining--) {
+            ModItems.ESCAPE_ROPE.get().onUseTick(helper.getLevel(), player, rope, remaining);
+        }
+        helper.assertTrue(rope.getDamageValue() == 1, "Escape Rope did not consume one durability");
+        helper.assertFalse(ModItems.ESCAPE_ROPE.get().isFoil(rope),
+                "Escape Rope kept glowing after completing its search");
+        helper.assertTrue(player.blockPosition().getY() == absoluteStart.getY(),
+                "Escape Rope moved the player to the wrong surface height");
+        helper.assertFalse(player.blockPosition().equals(absoluteStart),
+                "Escape Rope did not move the player out from below the roof");
+
+        ItemStack exposedRope = new ItemStack(ModItems.ESCAPE_ROPE.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, exposedRope);
+        helper.assertTrue(ModItems.ESCAPE_ROPE.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND)
+                        .getResult() == InteractionResult.FAIL,
+                "Escape Rope started searching while the player could already see the sky");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 40)
+    public static void redstoneToolLinksInterfaceAndTransfersPower(GameTestHelper helper) {
+        BlockPos interfacePos = new BlockPos(2, 2, 2);
+        BlockPos sourcePos = interfacePos.west();
+        BlockPos targetPos = new BlockPos(6, 2, 2);
+        helper.setBlock(interfacePos, ModBlocks.BASIC_REDSTONE_INTERFACE.get());
+        helper.setBlock(sourcePos, Blocks.REDSTONE_BLOCK);
+        helper.setBlock(targetPos, Blocks.REDSTONE_LAMP);
+
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack tool = new ItemStack(ModItems.REDSTONE_TOOL.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, tool);
+        BlockPos absoluteInterface = helper.absolutePos(interfacePos);
+        BlockPos absoluteTarget = helper.absolutePos(targetPos);
+
+        BlockHitResult interfaceHit = new BlockHitResult(Vec3.atCenterOf(absoluteInterface), Direction.UP,
+                absoluteInterface, false);
+        helper.assertTrue(tool.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, interfaceHit)).consumesAction(),
+                "Redstone Tool did not start linking from the interface");
+        helper.assertTrue(ModItems.REDSTONE_TOOL.get().isFoil(tool),
+                "Redstone Tool does not glow while linking");
+
+        BlockHitResult targetHit = new BlockHitResult(Vec3.atCenterOf(absoluteTarget), Direction.UP,
+                absoluteTarget, false);
+        helper.assertTrue(tool.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, targetHit)).consumesAction(),
+                "Redstone Tool did not finish linking to the target");
+        helper.assertFalse(ModItems.REDSTONE_TOOL.get().isFoil(tool),
+                "Redstone Tool remained in linking mode");
+        helper.assertTrue(helper.getBlockEntity(interfacePos) instanceof BasicRedstoneInterfaceBlockEntity,
+                "Basic Redstone Interface has no block entity");
+        if (helper.getBlockEntity(interfacePos) instanceof BasicRedstoneInterfaceBlockEntity blockEntity) {
+            helper.assertValueEqual(blockEntity.getTarget(), absoluteTarget,
+                    "Basic Redstone Interface stored the wrong target");
+        }
+        helper.assertTrue(helper.getLevel().getBestNeighborSignal(absoluteTarget) == 15,
+                "Linked target did not receive the interface signal");
+        helper.assertTrue(helper.getBlockState(targetPos).getValue(net.minecraft.world.level.block.RedstoneLampBlock.LIT),
+                "Linked redstone lamp did not turn on");
+
+        helper.startSequence()
+                .thenExecute(() -> helper.setBlock(sourcePos, Blocks.AIR))
+                .thenIdle(6)
+                .thenExecute(() -> helper.assertFalse(helper.getBlockState(targetPos)
+                        .getValue(net.minecraft.world.level.block.RedstoneLampBlock.LIT),
+                        "Linked redstone lamp did not turn off after input power was removed"))
+                .thenSucceed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void redstoneActivatorCyclesDurationAndAppliesTemporaryPower(GameTestHelper helper) {
+        BlockPos targetPos = TEST_POS;
+        BlockPos absoluteTarget = helper.absolutePos(targetPos);
+        helper.setBlock(targetPos, Blocks.REDSTONE_LAMP);
+
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack activator = new ItemStack(ModItems.REDSTONE_ACTIVATOR.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, activator);
+        helper.assertTrue(ModItems.REDSTONE_ACTIVATOR.get().getDuration(activator) == 20,
+                "Redstone Activator did not default to 20 ticks");
+
+        ModItems.REDSTONE_ACTIVATOR.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(ModItems.REDSTONE_ACTIVATOR.get().getDuration(activator) == 100,
+                "Redstone Activator did not cycle forward to 100 ticks");
+        player.setShiftKeyDown(true);
+        ModItems.REDSTONE_ACTIVATOR.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        player.setShiftKeyDown(false);
+        helper.assertTrue(ModItems.REDSTONE_ACTIVATOR.get().getDuration(activator) == 20,
+                "Redstone Activator did not cycle backward to 20 ticks");
+
+        ModItems.REDSTONE_ACTIVATOR.get().setDurationIndex(activator, 0);
+        BlockHitResult targetHit = new BlockHitResult(Vec3.atCenterOf(absoluteTarget), Direction.UP,
+                absoluteTarget, false);
+        helper.assertTrue(ModItems.REDSTONE_ACTIVATOR.get()
+                        .onItemUseFirst(activator, new UseOnContext(player, InteractionHand.MAIN_HAND, targetHit))
+                        .consumesAction(),
+                "Redstone Activator rejected a valid target");
+        helper.assertTrue(helper.getLevel().getBestNeighborSignal(absoluteTarget) == 15,
+                "Redstone Activator did not apply a 15-strength signal");
+        helper.assertTrue(helper.getBlockState(targetPos).getValue(net.minecraft.world.level.block.RedstoneLampBlock.LIT),
+                "Redstone Activator did not turn on the target lamp");
+
+        helper.startSequence()
+                .thenIdle(3)
+                .thenExecute(() -> helper.assertTrue(helper.getLevel().getBestNeighborSignal(absoluteTarget) == 0,
+                        "Redstone Activator signal did not expire after two ticks"))
+                .thenIdle(5)
+                .thenExecute(() -> helper.assertFalse(helper.getBlockState(targetPos)
+                        .getValue(net.minecraft.world.level.block.RedstoneLampBlock.LIT),
+                        "Target lamp did not turn off after its vanilla delay"))
+                .thenSucceed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
